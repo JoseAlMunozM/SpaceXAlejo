@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+
+:root {
+  --nasa-bg: #0B0E19;
+  --nasa-panel: #111727;
+  --nasa-blue: #0B3D91;
+  --nasa-blue-light: #1E90FF;
+  --nasa-red: #FC3D21;
+  --nasa-text: #FFFFFF;
+}
+
+body {
+  @apply bg-[color:var(--nasa-bg)] text-white;
+  font-family: 'Inter', sans-serif;
+}
+
+.table-header {
+  background-color: var(--nasa-blue);
+  color: white;
+}
+
+.table-row:hover {
+  background-color: #1A2333;
+}
+
+.card {
+  background-color: var(--nasa-panel);
+}
