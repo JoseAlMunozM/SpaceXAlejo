@@ -8,9 +8,22 @@ dynamo = boto3.resource("dynamodb")
 table = dynamo.Table(TABLE)
 
 def lambda_handler(event, context):
+
+    # Respuesta a OPTIONS (CORS) para consumos correctos de el backend 
+    if event.get("httpMethod") == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Methods": "GET,OPTIONS"
+            },
+            "body": ""
+        }
+
+    # Invocación GET normal usando el request con un cors incluido para las validaciones 
     url = "https://api.spacexdata.com/v4/launches"
 
-    # Consumimos la API sin requests (Lambda-friendly)
     with urllib.request.urlopen(url) as response:
         launches = json.loads(response.read().decode())
 
@@ -29,6 +42,11 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "GET,OPTIONS"
+        },
         "body": json.dumps({
             "message": "Datos procesados correctamente",
             "items_written": count

@@ -16,7 +16,7 @@ class InfraStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # 1. DynamoDB Table
+        # 1. DynamoDB creacion de tabla 
         self.table = dynamodb.Table(
             self,
             "SpaceXLaunchesTable",
@@ -24,7 +24,7 @@ class InfraStack(Stack):
                 name="id",
                 type=dynamodb.AttributeType.STRING
             ),
-            removal_policy=RemovalPolicy.DESTROY  # SOLO PARA DESARROLLO
+            removal_policy=RemovalPolicy.DESTROY  
         )
 
         # 2. Lambda Function
@@ -40,10 +40,10 @@ class InfraStack(Stack):
             }
         )
 
-        # Permiso Lambda -> DynamoDB
+        # Permiso Lambda -> DynamoDB lectura y escritura
         self.table.grant_read_write_data(self.lambda_fn)
 
-        # 3. EventBridge rule: Every 6 hours
+        # 3. EventBridge para actualozacion cada 6 horas 
         events.Rule(
             self,
             "SpaceXScheduleRule",
@@ -51,11 +51,16 @@ class InfraStack(Stack):
             targets=[targets.LambdaFunction(self.lambda_fn)]
         )
 
-        # 4. API Gateway for manual invocation
+        # 4. API Gateway for manual invocation con arreglo de CORS para consumo de el fronte
         api = apigateway.LambdaRestApi(
             self,
             "SpaceXApi",
             handler=self.lambda_fn,
             proxy=True,
+            default_cors_preflight_options=apigateway.CorsOptions(
+                allow_origins=apigateway.Cors.ALL_ORIGINS,
+                allow_methods=apigateway.Cors.ALL_METHODS,
+            ),
             deploy_options=apigateway.StageOptions(stage_name="prod")
         )
+
