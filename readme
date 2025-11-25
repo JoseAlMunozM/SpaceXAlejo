@@ -1,26 +1,37 @@
-# 🚀 Proyecto Fullstack SpaceX -- Documentación Completa
+# 🚀 Proyecto Fullstack SpaceX
 
-## 📘 Manual de Instalación, Despliegue y CI/CD
+### Infraestructura, Backend, Frontend y CI/CD en AWS
 
-Este documento contiene todo lo necesario para: - Instalar el proyecto
-en local\
-- Ejecutar backend y frontend\
-- Desplegar manualmente en AWS\
-- Entender el pipeline CI/CD con GitHub Actions
+```{=html}
+<p align="center">
+```
+`<img src="https://img.shields.io/badge/React-18-blue?logo=react" />`{=html}
+`<img src="https://img.shields.io/badge/Vite-Frontend-%23bd34fe?logo=vite" />`{=html}
+`<img src="https://img.shields.io/badge/Python-3.10+-yellow?logo=python" />`{=html}
+`<img src="https://img.shields.io/badge/AWS-CDK v2-orange?logo=amazonaws" />`{=html}
+`<img src="https://img.shields.io/badge/Docker-Enabled-blue?logo=docker" />`{=html}
+`<img src="https://img.shields.io/badge/Lambdas-Serverless-success?logo=amazonaws" />`{=html}
+`<br/>`{=html}
+`<img src="https://img.shields.io/badge/CI/CD-GitHub_Actions-black?logo=githubactions" />`{=html}
+`<img src="https://img.shields.io/badge/Deploy-AWS%20Fargate-orange?logo=amazonaws" />`{=html}
+`<img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen" />`{=html}
+```{=html}
+</p>
+```
 
 ------------------------------------------------------------------------
 
-# 📦 1. Instalación Local
+# 📘 1. Instalación Local
 
-## 🔧 1.1 Requisitos
+## 🔧 Requisitos
 
--   Node.js 18+
+-   Node.js **18+**\
 
--   Python 3.10+
+-   Python **3.10+**\
 
--   Docker Desktop
+-   Docker Desktop\
 
--   AWS CLI
+-   AWS CLI\
 
 -   AWS CDK v2
 
@@ -30,22 +41,26 @@ en local\
 
 ------------------------------------------------------------------------
 
-# 🐍 1.2 Instalación del Backend (AWS CDK + Lambdas)
+# 🐍 2. Backend --- AWS CDK + Lambda
+
+## Instalación
 
 ``` bash
 cd infra
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
 ```
 
-### Previsualizar infraestructura:
+### Previsualizar Infraestructura
 
-    cdk synth
+``` bash
+cdk synth
+```
 
 ------------------------------------------------------------------------
 
-# ⚙️ 1.3 Instalación del Frontend (React + Vite)
+# ⚛️ 3. Frontend --- React + Vite
 
 ``` bash
 cd spacex-frontend
@@ -55,9 +70,9 @@ npm run dev
 
 ------------------------------------------------------------------------
 
-# 🚀 2. Despliegue Manual en AWS
+# ☁️ 4. Despliegue Manual en AWS
 
-## 2.1 Backend --- AWS CDK
+## 4.1 Backend --- CDK Deploy
 
 ``` bash
 aws configure
@@ -68,64 +83,79 @@ cdk deploy
 
 ------------------------------------------------------------------------
 
-## 2.2 Actualizar Lambdas Manualmente
+## 4.2 Actualizar Lambdas Manualmente
 
-### Lambda API:
+### Lambda API
 
 ``` bash
 zip -r lambda_api.zip .
-aws lambda update-function-code   --function-name InfraStack-SpaceXApiLambdaD2E4A341-hpLHEvsea8DU   --zip-file fileb://lambda_api.zip   --region us-east-1
+aws lambda update-function-code \
+  --function-name InfraStack-SpaceXApiLambdaD2E4A341-hpLHEvsea8DU \
+  --zip-file fileb://lambda_api.zip \
+  --region us-east-1
 ```
 
-### Lambda Import:
+### Lambda Import
 
 ``` bash
 zip -r lambda_import.zip .
-aws lambda update-function-code   --function-name InfraStack-SpaceXImportLambda82D521AC-xHcGSI9T3DDu   --zip-file fileb://lambda_import.zip   --region us-east-1
+aws lambda update-function-code \
+  --function-name InfraStack-SpaceXImportLambda82D521AC-xHcGSI9T3DDu \
+  --zip-file fileb://lambda_import.zip \
+  --region us-east-1
 ```
 
 ------------------------------------------------------------------------
 
-# 2.3 Desplegar Frontend Manualmente
+# 🌐 4.3 Desplegar Frontend --- Docker + ECR + ECS
 
-### Build Docker:
+### Build
 
 ``` bash
 docker build -t spacex-frontend .
 ```
 
-### Login en ECR:
+### Login
 
 ``` bash
-aws ecr get-login-password --region us-east-2 | docker login   --username AWS   --password-stdin 986518320161.dkr.ecr.us-east-2.amazonaws.com
+aws ecr get-login-password --region us-east-2 | docker login \
+  --username AWS \
+  --password-stdin 986518320161.dkr.ecr.us-east-2.amazonaws.com
 ```
 
-### Push:
+### Push
 
 ``` bash
-docker tag spacex-frontend:latest 986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
-docker push 986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
+docker tag spacex-frontend:latest \
+  986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
+
+docker push \
+  986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
 ```
 
-### Redeploy ECS:
+### Redeploy ECS
 
 ``` bash
-aws ecs update-service   --cluster spacex-cluster   --service spacex-service   --force-new-deployment   --region us-east-2
+aws ecs update-service \
+  --cluster spacex-cluster \
+  --service spacex-service \
+  --force-new-deployment \
+  --region us-east-2
 ```
 
 ------------------------------------------------------------------------
 
-# 🧠 3. CI/CD -- GitHub Actions
+# 🤖 5. CI/CD --- GitHub Actions
 
-Cada push a **main** ejecuta:
+Cada push a `main` ejecuta automáticamente:
 
-### ✔ Backend
+## ✔ Backend
 
 -   Deploy CDK\
--   Genera ZIPs\
--   Actualiza Lambdas
+-   Build ZIPs\
+-   Actualización de Lambdas
 
-### ✔ Frontend
+## ✔ Frontend
 
 -   Build Docker\
 -   Push a ECR\
@@ -133,7 +163,7 @@ Cada push a **main** ejecuta:
 
 ------------------------------------------------------------------------
 
-# 🧪 4. Ejecutar Pipeline Manualmente
+# 🧪 6. Ejecutar Pipeline Manual
 
 ``` bash
 git add .
@@ -143,13 +173,14 @@ git push origin main
 
 ------------------------------------------------------------------------
 
-# 🛠 5. Troubleshooting
+# 🛠 7. Troubleshooting
 
-### Error: "Function not found"
+### ❗ "Function not found"
 
-Regiones correctas: - Lambdas → us-east-1 - ECS/ECR → us-east-2
+Regiones correctas: - Lambdas → **us-east-1**\
+- ECS/ECR → **us-east-2**
 
-### ECS no actualiza:
+### ❗ ECS no actualiza
 
 ``` bash
 aws ecs update-service --force-new-deployment
@@ -157,10 +188,13 @@ aws ecs update-service --force-new-deployment
 
 ------------------------------------------------------------------------
 
-# 🏁 6. Conclusión
+# 🏁 8. Conclusión
 
-Este sistema CI/CD automatiza: - Backend (Python + AWS CDK + Lambdas) -
-Frontend (React + Docker + ECS Fargate) - Upgrades automáticos por cada
-push a main
+Este proyecto contiene una arquitectura fullstack moderna, escalable y
+totalmente automatizada:
 
-Listo para producción en AWS.
+-   🐍 Backend con Python + AWS Lambda\
+-   🏗 Infraestructura con AWS CDK\
+-   ⚛️ Frontend en React + Vite + Docker\
+-   🤖 CI/CD integrado con GitHub Actions\
+-   ☁️ Deploy completo en AWS (Lambda + ECS Fargate + ECR)
