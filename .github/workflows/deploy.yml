@@ -17,8 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      AWS_REGION: us-east-1           # Lambdas en N. Virginia
+      AWS_REGION: us-east-1
       AWS_DEFAULT_REGION: us-east-1
+      LAMBDA_API: InfraStack-SpaceXApiLambdaD2E4A341-hpLHEvsea8DU
+      LAMBDA_IMPORT: InfraStack-SpaceXImportLambda82D521AC-xHcGSI9T3DDu
 
     steps:
       - name: Checkout repo
@@ -32,7 +34,7 @@ jobs:
       - name: Subir Lambda API
         run: |
           aws lambda update-function-code \
-            --function-name InfraStack-SpaceXApiLambdaD2EA4341-hpLHExsea8DU \
+            --function-name $LAMBDA_API \
             --zip-file fileb://${{ github.workspace }}/lambda_api.zip \
             --region us-east-1
 
@@ -44,7 +46,7 @@ jobs:
       - name: Subir Lambda Import
         run: |
           aws lambda update-function-code \
-            --function-name InfraStack-SpaceXImportLambda2D0521AC-xHcGSl9T3DDu \
+            --function-name $LAMBDA_IMPORT \
             --zip-file fileb://${{ github.workspace }}/lambda_import.zip \
             --region us-east-1
 
@@ -54,13 +56,13 @@ jobs:
   # ===========================================
   frontend:
     runs-on: ubuntu-latest
-    needs: backend                    # IMPORTANTE: primero backend, luego frontend
+    needs: backend
 
     env:
-      AWS_REGION: us-east-2           # ECS y ECR del frontend están en Ohio
+      AWS_REGION: us-east-2
+      AWS_DEFAULT_REGION: us-east-2
       ECR_REPO: spacex-frontend
       IMAGE_TAG: latest
-      AWS_DEFAULT_REGION: us-east-2
 
     steps:
       - name: Checkout repo
@@ -74,8 +76,7 @@ jobs:
 
       - name: Build Docker frontend
         working-directory: spacex-frontend
-        run: |
-          docker build -t spacex-frontend .
+        run: docker build -t spacex-frontend .
 
       - name: Tag Docker image
         run: |
