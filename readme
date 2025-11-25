@@ -1,2 +1,166 @@
-Codigo para proyecto de xpaceX 
-para prueba tecnica
+# 🚀 Proyecto Fullstack SpaceX -- Documentación Completa
+
+## 📘 Manual de Instalación, Despliegue y CI/CD
+
+Este documento contiene todo lo necesario para: - Instalar el proyecto
+en local\
+- Ejecutar backend y frontend\
+- Desplegar manualmente en AWS\
+- Entender el pipeline CI/CD con GitHub Actions
+
+------------------------------------------------------------------------
+
+# 📦 1. Instalación Local
+
+## 🔧 1.1 Requisitos
+
+-   Node.js 18+
+
+-   Python 3.10+
+
+-   Docker Desktop
+
+-   AWS CLI
+
+-   AWS CDK v2
+
+    ``` bash
+    npm install -g aws-cdk
+    ```
+
+------------------------------------------------------------------------
+
+# 🐍 1.2 Instalación del Backend (AWS CDK + Lambdas)
+
+``` bash
+cd infra
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+```
+
+### Previsualizar infraestructura:
+
+    cdk synth
+
+------------------------------------------------------------------------
+
+# ⚙️ 1.3 Instalación del Frontend (React + Vite)
+
+``` bash
+cd spacex-frontend
+npm install
+npm run dev
+```
+
+------------------------------------------------------------------------
+
+# 🚀 2. Despliegue Manual en AWS
+
+## 2.1 Backend --- AWS CDK
+
+``` bash
+aws configure
+cd infra
+cdk bootstrap
+cdk deploy
+```
+
+------------------------------------------------------------------------
+
+## 2.2 Actualizar Lambdas Manualmente
+
+### Lambda API:
+
+``` bash
+zip -r lambda_api.zip .
+aws lambda update-function-code   --function-name InfraStack-SpaceXApiLambdaD2E4A341-hpLHEvsea8DU   --zip-file fileb://lambda_api.zip   --region us-east-1
+```
+
+### Lambda Import:
+
+``` bash
+zip -r lambda_import.zip .
+aws lambda update-function-code   --function-name InfraStack-SpaceXImportLambda82D521AC-xHcGSI9T3DDu   --zip-file fileb://lambda_import.zip   --region us-east-1
+```
+
+------------------------------------------------------------------------
+
+# 2.3 Desplegar Frontend Manualmente
+
+### Build Docker:
+
+``` bash
+docker build -t spacex-frontend .
+```
+
+### Login en ECR:
+
+``` bash
+aws ecr get-login-password --region us-east-2 | docker login   --username AWS   --password-stdin 986518320161.dkr.ecr.us-east-2.amazonaws.com
+```
+
+### Push:
+
+``` bash
+docker tag spacex-frontend:latest 986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
+docker push 986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
+```
+
+### Redeploy ECS:
+
+``` bash
+aws ecs update-service   --cluster spacex-cluster   --service spacex-service   --force-new-deployment   --region us-east-2
+```
+
+------------------------------------------------------------------------
+
+# 🧠 3. CI/CD -- GitHub Actions
+
+Cada push a **main** ejecuta:
+
+### ✔ Backend
+
+-   Deploy CDK\
+-   Genera ZIPs\
+-   Actualiza Lambdas
+
+### ✔ Frontend
+
+-   Build Docker\
+-   Push a ECR\
+-   Redeploy ECS
+
+------------------------------------------------------------------------
+
+# 🧪 4. Ejecutar Pipeline Manualmente
+
+``` bash
+git add .
+git commit -m "deploy update"
+git push origin main
+```
+
+------------------------------------------------------------------------
+
+# 🛠 5. Troubleshooting
+
+### Error: "Function not found"
+
+Regiones correctas: - Lambdas → us-east-1 - ECS/ECR → us-east-2
+
+### ECS no actualiza:
+
+``` bash
+aws ecs update-service --force-new-deployment
+```
+
+------------------------------------------------------------------------
+
+# 🏁 6. Conclusión
+
+Este sistema CI/CD automatiza: - Backend (Python + AWS CDK + Lambdas) -
+Frontend (React + Docker + ECS Fargate) - Upgrades automáticos por cada
+push a main
+
+Listo para producción en AWS.
