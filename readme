@@ -1,25 +1,11 @@
+
 # 🚀 Proyecto Fullstack SpaceX
 
 ### Infraestructura, Backend, Frontend y CI/CD en AWS
 
-```{=html}
-<p align="center">
-```
-`<img src="https://img.shields.io/badge/React-18-blue?logo=react" />`{=html}
-`<img src="https://img.shields.io/badge/Vite-Frontend-%23bd34fe?logo=vite" />`{=html}
-`<img src="https://img.shields.io/badge/Python-3.10+-yellow?logo=python" />`{=html}
-`<img src="https://img.shields.io/badge/AWS-CDK v2-orange?logo=amazonaws" />`{=html}
-`<img src="https://img.shields.io/badge/Docker-Enabled-blue?logo=docker" />`{=html}
-`<img src="https://img.shields.io/badge/Lambdas-Serverless-success?logo=amazonaws" />`{=html}
-`<br/>`{=html}
-`<img src="https://img.shields.io/badge/CI/CD-GitHub_Actions-black?logo=githubactions" />`{=html}
-`<img src="https://img.shields.io/badge/Deploy-AWS%20Fargate-orange?logo=amazonaws" />`{=html}
-`<img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen" />`{=html}
-```{=html}
-</p>
-```
 
-------------------------------------------------------------------------
+
+
 
 # 📘 1. Instalación Local
 
@@ -198,3 +184,24 @@ totalmente automatizada:
 -   ⚛️ Frontend en React + Vite + Docker\
 -   🤖 CI/CD integrado con GitHub Actions\
 -   ☁️ Deploy completo en AWS (Lambda + ECS Fargate + ECR)
+About
+# 💻 9. Conclusión
+Languages
+JavaScript
+56.6%
+ 
+Python
+29.9%
+ 
+CSS
+9.1%
+ 
+Batchfile
+1.8%
+ 
+HTML
+1.5%
+ 
+Dockerfile
+1.1%
+
