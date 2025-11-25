@@ -4,60 +4,65 @@ on:
   push:
     branches: ["main"]
 
-env:
-  AWS_REGION: us-east-2
-
 jobs:
 
+  # =============================
+  # DEPLOY FRONTEND (ECS – us-east-2)
+  # =============================
   deploy-frontend:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
+    - name: Configure AWS credentials (ECS region)
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region: us-east-2
 
     - name: Build frontend image
       run: |
         docker build -t spacex-frontend ./spacex-frontend
 
-    - name: Login to ECR
+    - name: Login to ECR (ECS region)
       run: |
-        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com
+        aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 986518320161.dkr.ecr.us-east-2.amazonaws.com
 
-    - name: Tag & Push frontend image
+    - name: Push frontend image
       run: |
-        docker tag spacex-frontend:latest 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/spacex-frontend:latest
-        docker push 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/spacex-frontend:latest
+        docker tag spacex-frontend:latest 986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
+        docker push 986518320161.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
 
     - name: Restart ECS service
       run: |
         aws ecs update-service \
           --cluster spacex-cluster \
           --service spacex-service \
-          --force-new-deployment
+          --force-new-deployment \
+          --region us-east-2
 
 
+  # =============================
+  # DEPLOY BACKEND LAMBDAS (us-east-1)
+  # =============================
   deploy-lambdas:
     runs-on: ubuntu-latest
     needs: deploy-frontend
 
     steps:
-    - name: Checkout repository
+
+    - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
+    - name: Configure AWS credentials (Lambda region)
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region: us-east-1
 
     - name: Package Lambda API
       run: |
@@ -68,7 +73,8 @@ jobs:
       run: |
         aws lambda update-function-code \
         --function-name InfraStack-SpaceXApiLambdaD2EA4341-hpLHExsea8DU \
-        --zip-file fileb://infra/lambda/lambda_api/lambda_api.zip
+        --zip-file fileb://infra/lambda/lambda_api/lambda_api.zip \
+        --region us-east-1
 
     - name: Package Lambda Import
       run: |
@@ -79,4 +85,5 @@ jobs:
       run: |
         aws lambda update-function-code \
         --function-name InfraStack-SpaceXImportLambda8D2521AC-STyGrSI9T3DDu \
-        --zip-file fileb://infra/lambda/lambda_import/lambda_import.zip
+        --zip-file fileb://infra/lambda/lambda_import/lambda_import.zip \
+        --region us-east-1
