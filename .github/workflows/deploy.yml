@@ -17,35 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      AWS_REGION: us-east-1  # LAMBDAS están en N. Virginia
+      AWS_REGION: us-east-1          # Lambdas en N. Virginia
       AWS_DEFAULT_REGION: us-east-1
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install backend dependencies
-        working-directory: infra
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-
-      - name: CDK synth and deploy
-        working-directory: infra
-        run: |
-          npm install -g aws-cdk
-          cdk bootstrap
-          cdk deploy --require-approval never
-
       # -------- ZIP Y SUBIR LAMBDA API --------
       - name: Crear zip lambda_api
         working-directory: infra/lambda/lambda_api
-        run: zip -r ../../lambda_api.zip .
+        run: zip -r ../../../lambda_api.zip .
 
       - name: Subir Lambda API
         run: |
@@ -57,7 +39,7 @@ jobs:
       # -------- ZIP Y SUBIR LAMBDA IMPORT --------
       - name: Crear zip lambda_import
         working-directory: infra/lambda/lambda_import
-        run: zip -r ../../lambda_import.zip .
+        run: zip -r ../../../lambda_import.zip .
 
       - name: Subir Lambda Import
         run: |
