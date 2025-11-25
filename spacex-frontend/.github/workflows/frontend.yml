@@ -1,0 +1,45 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "spacex-frontend/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Login en AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login en Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build imagen Docker
+        run: |
+          cd spacex-frontend
+          docker build -t spacex-frontend .
+
+      - name: Tag imagen
+        run: |
+          docker tag spacex-frontend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
+
+      - name: Push imagen
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com/spacex-frontend:latest
+
+      - name: Actualizar ECS Service
+        run: |
+          aws ecs update-service \
+            --cluster spacex-cluster \
+            --service spacex-service \
+            --force-new-deployment
