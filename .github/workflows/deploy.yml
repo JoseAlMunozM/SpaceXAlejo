@@ -1,4 +1,4 @@
-name: CI/CD - Deploy Infra & Frontend
+name: CI/CD - SpaceX Deployment
 
 on:
   push:
@@ -6,63 +6,14 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  ECR_BACKEND_REPO: spacex-backend
-  ECR_FRONTEND_REPO: spacex-frontend
 
 jobs:
 
-  backend-build-and-deploy:
-    name: Build & Deploy Backend (CDK)
+  deploy-frontend:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-
-    - name: Install CDK
-      run: npm install -g aws-cdk
-
-    - name: Install backend dependencies (CDK)
-      working-directory: ./infra
-      run: |
-        npm install
-
-    - name: Build backend Docker image
-      run: |
-        docker build -t $ECR_BACKEND_REPO ./infra
-
-    - name: Login to ECR
-      run: |
-        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com
-
-    - name: Tag & Push backend image
-      run: |
-        docker tag $ECR_BACKEND_REPO:latest 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_BACKEND_REPO:latest
-        docker push 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_BACKEND_REPO:latest
-        
-    - name: Install CDK dependencies
-      working-directory: ./infra
-      run: |
-        npm install
-
-   
-
-
-
-  frontend-build-and-deploy:
-    name: Build & Deploy Frontend
-    runs-on: ubuntu-latest
-    needs: backend-build-and-deploy
-
-    steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Configure AWS credentials
@@ -74,7 +25,7 @@ jobs:
 
     - name: Build frontend image
       run: |
-        docker build -t $ECR_FRONTEND_REPO ./spacex-frontend
+        docker build -t spacex-frontend ./spacex-frontend
 
     - name: Login to ECR
       run: |
@@ -82,12 +33,50 @@ jobs:
 
     - name: Tag & Push frontend image
       run: |
-        docker tag $ECR_FRONTEND_REPO:latest 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_FRONTEND_REPO:latest
-        docker push 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_FRONTEND_REPO:latest
+        docker tag spacex-frontend:latest 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/spacex-frontend:latest
+        docker push 986518320161.dkr.ecr.$AWS_REGION.amazonaws.com/spacex-frontend:latest
 
-    - name: Update ECS service to pull new image
+    - name: Restart ECS service
       run: |
         aws ecs update-service \
           --cluster spacex-cluster \
           --service spacex-service \
           --force-new-deployment
+
+
+  deploy-lambdas:
+    runs-on: ubuntu-latest
+    needs: deploy-frontend
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Package Lambda API
+      run: |
+        cd infra/lambda/lambda_api
+        zip -r lambda_api.zip .
+
+    - name: Deploy Lambda API
+      run: |
+        aws lambda update-function-code \
+        --function-name InfraStack-SpaceXApiLambdaD2EA4341-hpLHExsea8DU \
+        --zip-file fileb://infra/lambda/lambda_api/lambda_api.zip
+
+    - name: Package Lambda Import
+      run: |
+        cd infra/lambda/lambda_import
+        zip -r lambda_import.zip .
+
+    - name: Deploy Lambda Import
+      run: |
+        aws lambda update-function-code \
+        --function-name InfraStack-SpaceXImportLambda8D2521AC-STyGrSI9T3DDu \
+        --zip-file fileb://infra/lambda/lambda_import/lambda_import.zip
